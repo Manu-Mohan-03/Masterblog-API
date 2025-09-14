@@ -21,6 +21,13 @@ def validate_blog(blog_post):
     return True
 
 
+def get_post_by_id(post_id):
+    """loop and find the blog post belonging to a particular ID"""
+    for post in POSTS:
+        if post['id'] == post_id:
+            return post
+    return None
+
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
     if request.method == 'POST':
@@ -44,10 +51,16 @@ def get_posts():
         # Handle Get request
         return jsonify(POSTS)
 
-"""
-@app.route('/api/posts/<post_id>', methods =['DELETE'])
+
+@app.route('/api/posts/<int:post_id>', methods =['DELETE'])
 def delete_post(post_id):
-  """
+    """DELETE API for deleting a blog"""
+    blog_post = get_post_by_id(post_id)
+    if not blog_post:
+        return jsonify({"error": "Not found"}), 404
+    POSTS.remove(blog_post)
+    return jsonify({"message": f"Post with id {post_id} deleted successfully"})
+
 
 
 if __name__ == '__main__':
