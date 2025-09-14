@@ -60,6 +60,15 @@ def get_posts():
         return jsonify(blog_post), 201
     else:
         # Handle Get request
+        sort = request.args.get('sort', None)
+        direction = request.args.get('direction', None)
+        if sort in ('title', 'content'):
+            results = POSTS.copy()
+            if not direction or direction == 'asc':
+                results.sort(key=lambda post: post.get(sort, ''))
+            elif direction == 'desc':
+                results.sort(reverse=True , key=lambda post: post.get(sort, ''))
+            return jsonify(results)
         return jsonify(POSTS)
 
 
@@ -87,6 +96,21 @@ def update_post(post_id):
     blog_post.update(new_post)
 
     return jsonify(blog_post)
+
+
+@app.route('/api/posts/search')
+def search_post():
+
+    title = request.args.get('title', None)
+    content = request.args.get('content', None)
+
+    result = []
+    for post in POSTS:
+        if title and title.lower() in post['title'].lower():
+            result.append(post)
+        if content and content.lower() in post['content'].lower():
+            result.append(post)
+    return jsonify(result)
 
 
 if __name__ == '__main__':
