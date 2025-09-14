@@ -21,6 +21,17 @@ def validate_blog(blog_post):
     return True
 
 
+def clean_blog(blog_post):
+    """To remove unnecessary items from blog post"""
+    filtered_blog = {}
+    if blog_post.get('title'):
+        filtered_blog['title'] = blog_post.get('title')
+    if blog_post.get('content'):
+        filtered_blog['content'] = blog_post.get('content')
+
+    return filtered_blog
+
+
 def get_post_by_id(post_id):
     """loop and find the blog post belonging to a particular ID"""
     for post in POSTS:
@@ -39,7 +50,7 @@ def get_posts():
             validate_blog(blog_post)
         except Exception as error:
             return jsonify({"error": str(error)}), 400
-
+        blog_post = clean_blog(blog_post)
         #Create new id
         new_id = max([post['id'] for post in POSTS]) + 10
         blog_post['id'] = new_id
@@ -62,6 +73,21 @@ def delete_post(post_id):
     return jsonify({"message": f"Post with id {post_id} deleted successfully"})
 
 
+@app.route('/api/posts/<int:post_id>', methods =['PUT'])
+def update_post(post_id):
+    """PUT API to update a blog post"""
+    blog_post = get_post_by_id(post_id)
+    if not blog_post:
+        return jsonify({"error": "Not found"}), 404
+    # get the data from post request
+    new_post = request.get_json()
+    new_post = clean_blog(new_post)
+    if new_post.items() <= blog_post.items():
+        return jsonify({"info": "Nothing to update"})
+    blog_post.update(new_post)
+
+    return jsonify(blog_post)
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5001, debug=True)
@@ -70,5 +96,9 @@ if __name__ == '__main__':
 {
     "title": "<title of the new post>",
     "content": "<content of the new post>"
+}
+{
+    "title": "<new title>",
+    "content": "<new content>"
 }
 """
