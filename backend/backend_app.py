@@ -6,6 +6,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
+# Global POST for sake of testing, can be moved to persistent storage as improvement
 POSTS = [
     {"id": 10, "title": "First post", "content": "This is the first post."},
     {"id": 20, "title": "Second post", "content": "This is the second post."},
@@ -41,6 +42,11 @@ def get_post_by_id(post_id):
 
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
+    """
+    1. Read all the posts using GET request
+    2. Query string sort and direction to sort the post
+    3. Post request to create a new post
+    """
     if request.method == 'POST':
         #get the data from post request
         blog_post = request.get_json()
@@ -58,15 +64,18 @@ def get_posts():
         # Add post to blogs list
         POSTS.append(blog_post)
         return jsonify(blog_post), 201
-    else:
-        # Handle Get request
+    else:    # Handle Get request
+        # retrieve the query parameters
         sort = request.args.get('sort', None)
         direction = request.args.get('direction', None)
         if sort in ('title', 'content'):
+            # To keep the original intact
             results = POSTS.copy()
             if not direction or direction == 'asc':
+                # if direction not mentioned by default ascending
                 results.sort(key=lambda post: post.get(sort, ''))
             elif direction == 'desc':
+                # to sort in descending order
                 results.sort(reverse=True , key=lambda post: post.get(sort, ''))
             return jsonify(results)
         return jsonify(POSTS)
@@ -88,7 +97,7 @@ def update_post(post_id):
     blog_post = get_post_by_id(post_id)
     if not blog_post:
         return jsonify({"error": "Not found"}), 404
-    # get the data from post request
+    # get the data from body of the request
     new_post = request.get_json()
     new_post = clean_blog(new_post)
     if new_post.items() <= blog_post.items():
@@ -100,7 +109,13 @@ def update_post(post_id):
 
 @app.route('/api/posts/search')
 def search_post():
-
+    """
+    For searching a post using title or content
+    Search will return or contents not and contents
+    For eg: title=ab&content=cd will show all posts with title ab and
+    all the posts with content cd. it will not restrict to only show
+    the post with title ab and content cd.
+    """
     title = request.args.get('title', None)
     content = request.args.get('content', None)
 
@@ -114,15 +129,4 @@ def search_post():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5001, debug=True)
-
-"""
-{
-    "title": "<title of the new post>",
-    "content": "<content of the new post>"
-}
-{
-    "title": "<new title>",
-    "content": "<new content>"
-}
-"""
+    app.run(host="0.0.0.0", port=5002, debug=True)
