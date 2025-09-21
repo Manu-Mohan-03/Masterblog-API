@@ -130,6 +130,7 @@ def search_post():
         print(post)
         if title and title.lower() in post['title'].lower():
             result.append(post)
+            continue
         if content and content.lower() in post['content'].lower():
             result.append(post)
     return jsonify(result)
